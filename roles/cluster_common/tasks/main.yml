@@ -28,3 +28,19 @@
 
 - name: authorize ssh with the downloaded key
   authorized_key: user=cloud-user key="{{ lookup('file', '/tmp/id_rsa.pub') }}"
+
+- name: install openjdk
+  yum: name={{ item }}
+  with_items:
+    - java-1.8.0-openjdk
+
+- name: fix jdk slow random source
+  lineinfile:
+    name: /etc/alternatives/jre/lib/security/java.security
+    regexp: '^securerandom.source.*'
+    line: 'securerandom.source=file:/dev/urandom'
+    state: present
+
+- name: set SELinux state
+  selinux: state="{{ selinux_state }}"
+  when: selinux_state is defined
