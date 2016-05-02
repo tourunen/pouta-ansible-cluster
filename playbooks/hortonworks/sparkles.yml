@@ -1,0 +1,34 @@
+- name: Configure NFS Gateway for ambari
+  hosts:
+    - masters
+    - nodes
+  become: yes
+  roles:
+    - ambari_nfs
+
+- name: Install h5py
+  hosts: 
+    - masters
+    - nodes
+  become: yes
+  roles:
+    - h5py
+
+- name: Configure Sparkles
+  hosts:
+    - masters
+    - nodes
+  become: yes
+  vars:
+    sparkles_dir: "/sparkles"
+    sparkles_release: "2-gamma"
+    sparkles_tar_url: "https://github.com/CSC-IT-Center-for-Science/spark-analysis/archive/v2-gamma.tar.gz"
+  roles:
+    - role: sparkles
+
+- name: Configure Sparkles for HDFS
+  hosts:
+    - masters
+  become: yes
+  roles:
+    - role: sparkles_conf
