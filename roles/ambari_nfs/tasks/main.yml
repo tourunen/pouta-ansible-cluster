@@ -1,0 +1,5 @@
+- name: Create a nfs hdfs directory
+  file: path=/hdfs state=directory
+
+- name: Mount the hdfs to nfs dir
+  mount: name=/hdfs src={{ cluster_name }}-master.novalocal:/ fstype=nfs opts='vers=3,proto=tcp,nolock' state=mounted

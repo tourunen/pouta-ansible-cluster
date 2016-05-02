@@ -21,7 +21,7 @@
     - masters
     - nodes
   vars:
-    pv_path: "/dev/vdc"
+    pv_path: "/dev/vdb"
   become: yes
   roles:
     - role: persistent_lvm_storage
@@ -30,6 +30,14 @@
 
     - role: volume_data_dir
       data_dir_path: "/hadoop"
+
+- name: Hortonworks common cluster setup
+  hosts:
+    - masters
+    - nodes
+  become: yes
+  roles:
+    - hortonworks_common
 
 - name: Configure master
   hosts:
