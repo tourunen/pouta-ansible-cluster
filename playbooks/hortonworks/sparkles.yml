@@ -21,8 +21,8 @@
   become: yes
   vars:
     sparkles_dir: "/sparkles"
-    sparkles_release: "2-gamma"
-    sparkles_tar_url: "https://github.com/CSC-IT-Center-for-Science/spark-analysis/archive/v2-gamma.tar.gz"
+    sparkles_release: "2-prod"
+    sparkles_tar_url: "https://github.com/CSC-IT-Center-for-Science/spark-analysis/archive/v2-prod.tar.gz"
   roles:
     - role: sparkles
 
