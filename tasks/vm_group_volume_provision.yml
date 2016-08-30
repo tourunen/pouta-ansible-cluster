@@ -7,3 +7,12 @@
     wait: yes
   with_sequence: count={{ vm_group.num_vms|default(1) }}
   when: "{{ volume_spec.size }}|default(0) > 0"
+  async: 60
+  register: async_volume_create
+
+- name: check volume create status
+  async_status: jid={{ item.ansible_job_id }}
+  register: job_result
+  until: job_result.finished
+  retries: 30
+  with_items: "{{ async_volume_create.results }}"
