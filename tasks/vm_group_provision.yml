@@ -25,15 +25,17 @@
       group: "{{ cluster_name }}-{{ vm_group.server_group|default(server_group|default(vm_group_name)) }}"
     wait: no
   with_sequence: count={{ vm_group.num_vms|default(1) }}
+  async: 60
 
-# TODO: replace with async_wait when os_server behaves with async (see ansible #4393)
-- name: wait for the last VM to be active
+# TODO: replace with os_server wait: yes and async_wait loop when os_server behaves with async (see ansible #4393)
+- name: wait for all VMs to be active
   os_server_facts:
-    server: "{{ cluster_name }}-{{ vm_group_name }}-{{ vm_group.num_vms|default(1) }}"
+    server: "{{ cluster_name }}-{{ vm_group_name }}-{{ item }}"
     wait: yes
-  until: openstack_servers[0].status == 'ACTIVE'
+  until: openstack_servers and openstack_servers[0].status == 'ACTIVE'
   retries: 30
-  delay: 5
+  delay: 2
+  with_sequence: count={{ vm_group.num_vms|default(1) }}
 
 - name: get facts for {{ vm_group_name }} VMs
   os_server_facts:

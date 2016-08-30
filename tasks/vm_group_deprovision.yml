@@ -7,6 +7,15 @@
     state: absent
   with_sequence: count={{ vm_group.num_vms|default(1) }}
   when: remove_vms | bool
+  async: 60
+  register: async_vm_remove
+
+- name: check VM remove status
+  async_status: jid={{ item.ansible_job_id }}
+  register: job_result
+  until: job_result.finished
+  retries: 30
+  with_items: "{{ async_vm_remove.results }}"
 
 - name: remove {{ vm_group_name }} volumes
   include: tasks/vm_group_volume_deprovision.yml
