@@ -13,9 +13,13 @@ openshift_release={{ oso_release }}
 openshift_image_tag={{ oso_image_tag }}
 {% endif %}
 
-
 # move the internal DNS away from port 53, where we have dnsmasq for cluster DNS
 openshift_master_dns_port=8053
+
+{% if oso_secure_registry %}
+# set the flag telling registry in secured (helps with scaling, has to be done manually)
+openshift_docker_hosted_registry_insecure=False
+{% endif %}
 
 {% if master.num_vms > 1 %}
 # clustered installation

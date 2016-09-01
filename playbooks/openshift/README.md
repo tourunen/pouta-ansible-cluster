@@ -43,8 +43,9 @@ This is a log of an example installation of a proof of concept cluster with
 
 Shell environment with
 - OpenStack credentials for cPouta 
-- python virtualenvironment with ansible>=2.1.0, shade and dnspython
+- python virtualenv with ansible, shade, dnspython and pyopenssl
 - venv should have latest setuptools and pip (pip install --upgrade setuptools pip)
+- if you have SELinux enabled, either disable that or make sure the virtualenv has libselinux-python  
 - ssh access to the internal network of your project
     - either run this on your bastion host
     - or set up ssh forwarding through your bastion host in your ~/.ssh/config
