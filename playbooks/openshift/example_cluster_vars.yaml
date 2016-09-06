@@ -29,7 +29,7 @@ master:
       volume: data
       size: "50%VG"
       fstype: xfs
-      mount_point: /var/lib/origin/openshift.local.volumes
+      mount_path: /var/lib/origin/openshift.local.volumes
 
 # List of active node groups. You can have more defined, only those
 # that are listed here are actually used.
