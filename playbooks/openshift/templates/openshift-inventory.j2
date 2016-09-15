@@ -46,6 +46,9 @@ openshift_master_htpasswd_file={{ openshift_master_htpasswd_file }}
 # as a guess, set the default subdomain to openshift_public_hostname
 osm_default_subdomain={{ openshift_public_hostname }}
 
+# default project node selector
+osm_default_node_selector='region=user-node'
+
 # deploy the router on a node with external IP
 {% if master.num_vms > 1 %}
 openshift_hosted_router_selector='region=network'
@@ -60,6 +63,10 @@ openshift_master_named_certificates=[{'certfile': '{{ certificate_crt }}', 'keyf
 openshift_master_overwrite_named_certificates=true
 openshift_hosted_router_certificate={'certfile': '{{ certificate_crt }}', 'keyfile': '{{ certificate_key }}', 'cafile': '{{ certificate_ca }}' }
 {% endif %}
+
+openshift_hosted_metrics_deploy=true
+openshift_master_default_subdomain={{ openshift_public_hostname }}
+openshift_hosted_metrics_resolution=20s
 
 [OSEv3:children]
 masters
@@ -90,6 +97,9 @@ node_lbs
 {{ group_name }}
 {% endfor %}
 
+[node_masters:vars]
+openshift_schedulable=true
+
 [node_masters]
 {% for vm in groups['master'] %}
 {{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }} openshift_node_labels="{'region': 'infra'}"
@@ -109,7 +119,7 @@ pv_vg_data=vg_data
 
 {% for group_name in vars['node_groups'] %}
 [{{ group_name }}:vars]
-openshift_node_labels="{'region': 'default', 'type': '{{ group_name }}' }"
+openshift_node_labels="{'region': 'user-node', 'type': '{{ group_name }}'}"
 pv_vg_data=vg_data
 vm_group_name={{ group_name }}
 
