@@ -2,4 +2,4 @@
   file: path=/hdfs state=directory
 
 - name: Mount the hdfs to nfs dir
-  mount: name=/hdfs src={{ cluster_name }}-master.novalocal:/ fstype=nfs opts='vers=3,proto=tcp,nolock' state=mounted
+  mount: name=/hdfs src={{ cluster_name }}-master-1.novalocal:/ fstype=nfs opts='vers=3,proto=tcp,nolock' state=mounted

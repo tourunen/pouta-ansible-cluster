@@ -23,6 +23,9 @@
           "name" : "ZOOKEEPER_SERVER"
         },
         {
+          "name" : "NFS_GATEWAY"
+        },
+        {
           "name" : "AMBARI_SERVER"
         },
         {
