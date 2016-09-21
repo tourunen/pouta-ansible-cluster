@@ -10,6 +10,13 @@
     - base
     - cluster_common
 
+- name: Configure cluster masters
+  hosts:
+    - masters
+  become: yes
+  roles:
+    - cluster_master
+
 - name: Configure openshift VMs
   hosts:
     - masters
@@ -28,10 +35,9 @@
     - masters
   become: yes
   roles:
-    - cluster_master
     - openshift_master
 
-- name: Configure nfs server
+- name: Prepare nfs server for OpenShift NFS playbook
   hosts:
     - nfsservers
   become: yes

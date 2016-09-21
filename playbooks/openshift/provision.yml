@@ -72,11 +72,11 @@
       loop_control:
         loop_var: "vm_group_name"
 
-    - name: single master public ip
+    - name: assing public ip to first master (no separate load balancers)
       os_floating_ip:
         server: "{{ cluster_name }}-master-1"
         floating_ip_address: "{{ openshift_public_ip }}"
-      when: master.num_vms == 1
+      when: lb is not defined or (lb.num_vms|default(0)) < 1
 
     - name: provision etcd VMs
       include: tasks/vm_group_provision.yml
@@ -94,12 +94,13 @@
         - "lb"
       loop_control:
         loop_var: "vm_group_name"
-      when: lb is defined
+      when: lb is defined and (lb.num_vms|default(0)) > 0
 
-    - os_floating_ip:
+    - name: assign public IP to first load balancer
+      os_floating_ip:
         server: "{{ cluster_name }}-lb-1"
         floating_ip_address: "{{ openshift_public_ip }}"
-      when: master.num_vms > 1
+      when: lb is defined and (lb.num_vms|default(0)) > 0
 
     - name: provision nfs VMs
       include: tasks/vm_group_provision.yml
@@ -132,11 +133,19 @@
   hosts: localhost
   connection: local
   tasks:
-    - name: create inventory on disk
+    - name: create inventory on disk (multimaster)
       template:
-        src: templates/openshift-inventory.j2
+        src: templates/inventory.multimaster.j2
         dest: ./openshift-inventory
         backup: yes
+      when: master.num_vms > 1
+
+    - name: create inventory on disk (single master)
+      template:
+        src: templates/inventory.single_master.j2
+        dest: ./openshift-inventory
+        backup: yes
+      when: master.num_vms == 1
 
     - name: create tmuxinator status session config
       include: tasks/create_tmuxinator_config.yml

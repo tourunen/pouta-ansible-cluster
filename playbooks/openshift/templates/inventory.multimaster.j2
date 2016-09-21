@@ -21,17 +21,14 @@ openshift_master_dns_port=8053
 openshift_docker_hosted_registry_insecure=False
 {% endif %}
 
-{% if master.num_vms > 1 %}
 # clustered installation
 openshift_master_cluster_method=native
+{% if (lb.num_vms|default(0)) > 0 %}
 openshift_master_cluster_hostname={{ groups['lb'][0] }}
-openshift_master_cluster_public_hostname={{ openshift_public_hostname }}
 {% else %}
-# single "master runs all the bells and whistles" installation
-openshift_public_hostname={{ openshift_public_hostname }}
-openshift_public_ip={{ openshift_public_ip }}
-openshift_master_api_url=https://{{ groups['master'][0] }}.novalocal:8443
+openshift_master_cluster_hostname={{ groups['master'][0] }}
 {% endif %}
+openshift_master_cluster_public_hostname={{ openshift_public_hostname }}
 
 # use openshift's own dnsmasq
 openshift_use_dnsmasq=false
@@ -51,11 +48,7 @@ osm_default_node_selector='region=user-node'
 osm_project_request_template='default/project-request-default'
 
 # deploy the router on a node with external IP
-{% if master.num_vms > 1 %}
 openshift_hosted_router_selector='region=network'
-{% else %}
-openshift_hosted_router_selector='region=infra'
-{% endif %}
 
 # if the wildcard cert is defined, set it for api and router
 # note the difference with singular and plural
@@ -72,10 +65,8 @@ openshift_hosted_metrics_resolution=20s
 [OSEv3:children]
 masters
 nodes
-{% if master.num_vms > 1 %}
 etcd
 lb
-{% endif %}
 
 [masters:vars]
 vm_group_name=master
@@ -91,9 +82,7 @@ pv_vg_data=vg_data
 
 [nodes:children]
 node_masters
-{% if master.num_vms > 1 %}
 node_lbs
-{% endif %}
 {% for group_name in vars['node_groups'] %}
 {{ group_name }}
 {% endfor %}
@@ -106,13 +95,13 @@ openshift_schedulable=true
 {{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }} openshift_node_labels="{'region': 'infra'}"
 {% endfor %}
 
-{% if master.num_vms > 1 %}
 [node_lbs:vars]
 vm_group_name=lb
 openshift_node_labels="{'region': 'network'}"
 pv_vg_data=vg_data
 
 [node_lbs]
+{% if (lb is defined and lb.num_vms|default(0)) > 0 %}
 {% for vm in groups['lb'] %}
 {{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
 {% endfor %}
@@ -135,24 +124,17 @@ vm_group_name=nfs
 pv_vg_pvol=vg_pvol
 
 [nfsservers]
-{% if master.num_vms > 1 or nfs is defined %}
 {{ groups['nfs'][0] }} ansible_ssh_host={{ hostvars[groups['nfs'][0]]['ansible_ssh_host'] }}
-{% else %}
-{{ groups['master'][0] }} ansible_ssh_host={{ hostvars[groups['master'][0]]['ansible_ssh_host'] }}
-{% endif %}
 
-{% if master.num_vms > 1 %}
 [etcd]
-{% for vm in groups['etcd'] %}
+{% if (etcd.num_vms|default(0)) > 0 %}{% set etcd_group='etcd' %}{% else %}{% set etcd_group='master' %}{% endif %}
+{% for vm in groups[etcd_group] %}
 {{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
 {% endfor %}
 
-[lb:vars]
-# https://bugzilla.redhat.com/show_bug.cgi?id=1298787
-# containerized=false
-
 [lb]
+{% if (lb.num_vms|default(0)) > 0 %}
 {% for vm in groups['lb'] %}
-{{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
+{{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }} containerized=false
 {% endfor %}
 {% endif %}
