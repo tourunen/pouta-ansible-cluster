@@ -1,0 +1,26 @@
+- name: Install sparkles python dependencies
+  hosts: 
+    - masters
+    - nodes
+  become: yes
+  roles:
+    - sparkles_pip
+
+- name: Configure Sparkles
+  hosts:
+    - masters
+    - nodes
+  become: yes
+  vars:
+    sparkles_dir: "/share/sparkles"
+    sparkles_release: "2-prod"
+    sparkles_tar_url: "https://github.com/CSC-IT-Center-for-Science/spark-analysis/archive/v2-prod.tar.gz"
+  roles:
+    - role: sparkles
+
+- name: Configure Sparkles for HDFS
+  hosts:
+    - masters
+  become: yes
+  roles:
+    - role: sparkles_conf

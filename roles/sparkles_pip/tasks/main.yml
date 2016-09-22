@@ -1,0 +1,16 @@
+---
+- name: install dependencies
+  yum: name={{ item }}
+  with_items:
+    - python-pip
+    - python-devel.x86_64
+    - h5py.x86_64
+    - sqlite-devel.x86_64
+
+-  pip: name=python-swiftclient version=2.4.0
+
+-  pip: name=python-keystoneclient
+
+-  pip: name=SQLAlchemy
+
+-  pip: name=snakebite

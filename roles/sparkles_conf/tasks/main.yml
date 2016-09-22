@@ -1,0 +1,2 @@
+- name: create sparkles_data directories and cloud-user access in HDFS
+  script: sparkles_hdfs.sh
