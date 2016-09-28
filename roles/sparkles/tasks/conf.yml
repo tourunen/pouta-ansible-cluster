@@ -12,5 +12,10 @@
 - name: Ensure etc directory exists
   file: path="{{ sparkles_dir }}/etc" state=directory owner=root mode=0777
 
-- name: copy config.yml.template in etc
+- name: Copy config.yml.template in etc
   action: template dest="{{ sparkles_dir }}/etc/config.yml.template" src=roles/sparkles/files/config.yml.template owner=root group=root mode=0777
+  with_items: "{{ groups['masters'] }}"
+
+- name: Add the default config.yml location for sparkles
+  lineinfile: dest=/home/cloud-user/.sparkles_configpath line="{{ sparkles_dir }}/etc/config.yml" state=present create=yes
+  when: ansible_host  == "spark-cluster-master-1"
