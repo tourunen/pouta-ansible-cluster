@@ -18,4 +18,4 @@
 
 - name: Add the default config.yml location for sparkles
   lineinfile: dest=/home/cloud-user/.sparkles_configpath line="{{ sparkles_dir }}/etc/config.yml" state=present create=yes
-  when: ansible_host  == "spark-cluster-master-1"
+  when: inventory_hostname_short  == "{{ cluster_name }}-master-1"

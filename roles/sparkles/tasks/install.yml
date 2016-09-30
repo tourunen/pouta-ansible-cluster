@@ -1,7 +1,7 @@
 - name: Ensure sparkles directory exists
   file: path="{{ sparkles_dir }}" state=directory owner=root mode=0777
 
-- unarchive: src={{ sparkles_tar_url }} dest=/tmp copy=no
+- unarchive: src={{ sparkles_tar_url }} dest=/tmp copy=no keep_newer=yes
 
 - name: Execute Python Setup Script
   command: chdir=/tmp/spark-analysis-{{ sparkles_release }} /usr/bin/python setup.py install

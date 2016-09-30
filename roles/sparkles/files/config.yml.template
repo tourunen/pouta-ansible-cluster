@@ -15,3 +15,4 @@ MODULES_DIR_LOCAL: '/share/sparkles/modules/'  # REGARDLESS OF THE STORAGE, THER
 FILES_DIR: '/sparkles/files/'
 FEATURES_DIR: '/sparkles/features/'
 MODULES_DIR: '/sparkles/modules/'
+SPARKLES_TMP_DIR: '/sparkles/tmp/'

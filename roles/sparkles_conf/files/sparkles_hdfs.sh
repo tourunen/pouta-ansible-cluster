@@ -1,3 +1,4 @@
+sudo -u hdfs hadoop fs -mkdir -p /user/cloud-user
 sudo -u hdfs hadoop fs -chown -R cloud-user /user/cloud-user
 sudo -u hdfs hadoop fs -mkdir -p /sparkles/tmp
 sudo -u hdfs hadoop fs -mkdir -p /sparkles/hdf5
