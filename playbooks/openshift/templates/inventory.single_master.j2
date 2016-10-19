@@ -16,6 +16,9 @@ openshift_image_tag={{ oso_image_tag }}
 # move the internal DNS away from port 53, where we have dnsmasq for cluster DNS
 openshift_master_dns_port=8053
 
+# project network isolation by default
+os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
+
 {% if oso_secure_registry|default(False) %}
 # set the flag telling registry in secured (helps with scaling, has to be done manually)
 openshift_docker_hosted_registry_insecure=False
@@ -56,6 +59,9 @@ openshift_hosted_router_certificate={'certfile': '{{ certificate_crt }}', 'keyfi
 openshift_hosted_metrics_deploy=true
 openshift_master_default_subdomain={{ openshift_public_hostname }}
 openshift_hosted_metrics_resolution=20s
+
+# reduce master memory usage
+osm_api_server_args={'deserialization-cache-size': ['1000']}
 
 [OSEv3:children]
 masters
