@@ -4,9 +4,9 @@ windows:
   - overview:
       layout: tiled
       panes:
-        - pods:
+        - active_pods:
           - ssh -l cloud-user -t {{ hostvars[groups.master.0]['ansible_ssh_host'] }}
-          - watch -n 10 oc get pods --all-namespaces
+          - watch -n 10 "oc get pods --all-namespaces | egrep -v 'Completed|DeadlineExceeded|build .*Error'"
         - routes:
           - ssh -l cloud-user -t {{ hostvars[groups.master.0]['ansible_ssh_host'] }}
           - watch -n 10 oc get routes --all-namespaces
