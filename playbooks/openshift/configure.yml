@@ -27,7 +27,7 @@
     - role: lvm_storage
 
     - role: docker_host
-      docker_lvol_size: "50%FREE"
+      docker_lvol_size: "99%FREE"
       docker_lvol_vg_name: "vg_data"
 
 - name: Configure openshift masters
