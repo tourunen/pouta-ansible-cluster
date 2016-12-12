@@ -133,13 +133,13 @@ pv_vg_pvol=vg_pvol
 {{ groups['nfs'][0] }} ansible_ssh_host={{ hostvars[groups['nfs'][0]]['ansible_ssh_host'] }}
 
 [etcd]
-{% if (etcd.num_vms|default(0)) > 0 %}{% set etcd_group='etcd' %}{% else %}{% set etcd_group='master' %}{% endif %}
+{% if etcd is defined and etcd.num_vms|default(0) > 0 %}{% set etcd_group='etcd' %}{% else %}{% set etcd_group='master' %}{% endif %}
 {% for vm in groups[etcd_group] %}
 {{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
 {% endfor %}
 
 [lb]
-{% if (lb.num_vms|default(0)) > 0 %}
+{% if lb is defined and lb.num_vms|default(0) > 0 %}
 {% for vm in groups['lb'] %}
 {{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }} containerized=false
 {% endfor %}
