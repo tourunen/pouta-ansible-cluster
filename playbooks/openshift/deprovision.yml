@@ -55,5 +55,9 @@
         state: absent
       with_items:
         - "{{ cluster_name }}-common"
+        - "{{ cluster_name }}-infra"
         - "{{ cluster_name }}-master"
+        - "{{ cluster_name }}-node"
+        - "{{ cluster_name }}-lb"
+        - "{{ cluster_name }}-nfs"
       when: remove_security_groups | default(False) | bool

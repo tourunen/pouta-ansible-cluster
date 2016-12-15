@@ -141,3 +141,25 @@ Add a user
 - open security groups
 - start testing and learning
 - get a proper certificate for master
+
+## Security groups
+
+- common
+    - applied to all VMs
+    - allow ssh from bastion
+- infra
+    - applied for all infrastructure VMs (masters, etcd, lb)
+    - allow all traffic between infra VMs
+- masters
+    - applied to all masters
+    - allow incoming DNS from common
+- nodes
+    - applied for all node VMs
+    - allow all traffic from infra SG
+- lb
+    - applied to load balancers/router VMs
+    - allow all traffic to router http, https and api port
+- nfs
+    - applied to NFS server
+    - allow nfs v4 from all VMs
+
