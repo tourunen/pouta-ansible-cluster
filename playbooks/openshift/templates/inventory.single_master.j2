@@ -72,8 +72,8 @@ vm_group_name=master
 pv_vg_data=vg_data
 
 [masters]
-{% for master in groups['master'] %}
-{{ master }} ansible_ssh_host={{ hostvars[master]['ansible_ssh_host'] }}
+{% for vm in groups['master'] %}
+{{ vm }} openshift_hostname={{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
 {% endfor %}
 
 # we compose [nodes] from (potentially heterogeneous) child groups
@@ -90,7 +90,7 @@ openshift_schedulable=true
 
 [node_masters]
 {% for vm in groups['master'] %}
-{{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }} openshift_node_labels="{'region': 'infra'}"
+{{ vm }} openshift_hostname={{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }} openshift_node_labels="{'region': 'infra'}"
 {% endfor %}
 
 {% for group_name in vars['node_groups'] %}
@@ -101,7 +101,7 @@ vm_group_name={{ group_name }}
 
 [{{ group_name }}]
 {% for vm in groups[group_name] %}
-{{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
+{{ vm }} openshift_hostname={{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
 {% endfor %}
 {% endfor %}
 
@@ -111,7 +111,7 @@ pv_vg_pvol=vg_pvol
 
 [nfsservers]
 {% if nfs is defined %}
-{{ groups['nfs'][0] }} ansible_ssh_host={{ hostvars[groups['nfs'][0]]['ansible_ssh_host'] }}
+{{ groups['nfs'][0] }}  openshift_hostname={{ groups['nfs'][0] }} ansible_ssh_host={{ hostvars[groups['nfs'][0]]['ansible_ssh_host'] }}
 {% else %}
-{{ groups['master'][0] }} ansible_ssh_host={{ hostvars[groups['master'][0]]['ansible_ssh_host'] }}
+{{ groups['master'][0] }}  openshift_hostname={{ groups['master'][0] }} ansible_ssh_host={{ hostvars[groups['master'][0]]['ansible_ssh_host'] }}
 {% endif %}
