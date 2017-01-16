@@ -19,6 +19,9 @@ openshift_master_dns_port=8053
 # project network isolation by default
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
 
+# use iptables, not firewalld
+os_firewall_use_firewalld=False
+
 {% if oso_secure_registry|default(False) %}
 # set the flag telling registry in secured (helps with scaling, has to be done manually)
 openshift_docker_hosted_registry_insecure=False

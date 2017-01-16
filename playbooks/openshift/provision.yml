@@ -44,13 +44,24 @@
         name: "{{ cluster_name }}-common"
         description: "Ansible generated common security group for {{ cluster_name }}"
 
-    # remote_group workaround for https://github.com/ansible/ansible-modules-core/issues/2855
-    - name: common SG - open cluster internal access
+    - name: common SG - open cluster internal access to bastion
       os_security_group_rule:
         security_group: "{{ cluster_name }}-common"
-        remote_group: "{{ item }}"
-      with_items:
-        - ["{{ sg_bastion.secgroup.id }}"]
+        remote_group: "{{ sg_bastion.secgroup.id }}"
+
+    - name: common SG - open cluster internal ping
+      os_security_group_rule:
+        security_group: "{{ cluster_name }}-common"
+        remote_group: "{{ sg_common.secgroup.id }}"
+        protocol: icmp
+
+    - name: common SG - open cluster SDN
+      os_security_group_rule:
+        security_group: "{{ cluster_name }}-common"
+        remote_group: "{{ sg_common.secgroup.id }}"
+        protocol: udp
+        port_range_min: 4789
+        port_range_max: 4789
 
     - name: infra SG - create
       register: sg_infra
@@ -61,9 +72,7 @@
     - name: infra SG - open comms in infra
       os_security_group_rule:
         security_group: "{{ cluster_name }}-infra"
-        remote_group: "{{ item }}"
-      with_items:
-        - ["{{ sg_infra.secgroup.id }}"]
+        remote_group: "{{ sg_infra.secgroup.id }}"
 
     - name: master SG - create
       os_security_group:
@@ -73,12 +82,13 @@
     - name: master SG - open comms to infra
       os_security_group_rule:
         security_group: "{{ cluster_name }}-master"
-        remote_group: "{{ item }}"
-        protocol: udp
-        port_range_min: 53
-        port_range_max: 53
+        remote_group: "{{ sg_common.secgroup.id }}"
+        protocol: "{{ item.proto }}"
+        port_range_min: "{{ item.port }}"
+        port_range_max: "{{ item.port }}"
       with_items:
-        - ["{{ sg_common.secgroup.id }}"]
+        - { proto: 'udp', port: 53 }
+        - { proto: 'tcp', port: 8443 }
 
     - name: node SG - create
       os_security_group:
@@ -88,9 +98,7 @@
     - name: node SG - open comms to infra
       os_security_group_rule:
         security_group: "{{ cluster_name }}-node"
-        remote_group: "{{ item }}"
-      with_items:
-        - ["{{ sg_infra.secgroup.id }}"]
+        remote_group: "{{ sg_infra.secgroup.id }}"
 
     - name: lb SG - create
       os_security_group:
@@ -106,6 +114,14 @@
         remote_ip_prefix: "{{ item }}/32"
       with_items: "{{ project_external_ips | default([]) }}"
       when: project_external_ips is defined
+
+    - name: open internal access
+      os_security_group_rule:
+        security_group: "{{ cluster_name }}-lb"
+        protocol: tcp
+        port_range_min: 8443
+        port_range_max: 8443
+        remote_group: "{{ sg_common.secgroup.id }}"
 
     - name: populate LB secgroup rules from cluster_vars.yaml
       os_security_group_rule:
@@ -127,9 +143,7 @@
         protocol: tcp
         port_range_min: 2049
         port_range_max: 2049
-        remote_group: "{{ item }}"
-      with_items:
-        - ["{{ sg_common.secgroup.id }}"]
+        remote_group: "{{ sg_common.secgroup.id }}"
 
     - name: populate custom secgroup rules from cluster_vars.yaml
       os_security_group_rule:
@@ -203,14 +217,6 @@
         floating_ip_address: "{{ openshift_public_ip }}"
       when: lb is defined and (lb.num_vms|default(0)) > 0
 
-    - name: provision nfs VMs
-      include: tasks/vm_group_provision.yml
-      with_items:
-        - "nfs"
-      loop_control:
-        loop_var: "vm_group_name"
-      when: nfs is defined and (nfs.num_vms|default(0)) > 0
-
     - name: lb SG - open access to the API itself
       os_security_group_rule:
         security_group: "{{ cluster_name }}-lb"
@@ -221,16 +227,27 @@
       with_items:
         - [80, 443, 8443]
 
+    - name: provision nfs VMs
+      include: tasks/vm_group_provision.yml
+      vars:
+        security_groups: ["{{ cluster_name }}-nfs", "{{ cluster_name }}-infra", "{{ cluster_name }}-common"]
+      with_items:
+        - "nfs"
+      loop_control:
+        loop_var: "vm_group_name"
+      when: nfs is defined and (nfs.num_vms|default(0)) > 0
+
     - name: provision nodes
       include: tasks/vm_group_provision.yml
       vars:
+        security_groups: ["{{ cluster_name }}-node", "{{ cluster_name }}-common"]
         inventory_group: "nodes"
         server_group: "nodes"
       with_items: "{{ node_groups }}"
       loop_control:
         loop_var: "vm_group_name"
 
-- name: Generate inventory and tmuxinator config
+- name: Generate inventory, tmuxinator config and ssh config
   hosts: localhost
   connection: local
   tasks:
