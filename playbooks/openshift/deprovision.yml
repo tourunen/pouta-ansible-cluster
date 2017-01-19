@@ -1,4 +1,4 @@
-- name: Destroy a cluster deployed by cluster.yml
+- name: Destroy a cluster deployed by provision.yml, defined by cluster_vars.yaml
   hosts: localhost
   connection: local
   tasks:
