@@ -51,11 +51,11 @@ windows:
 {% endfor %}
 {% endif %}
 
-{% if 'lbs' in groups %}
+{% if 'lb' in groups %}
   - lbs-dstat:
       layout: even-vertical
       panes:
-{% for host in groups['lbs'] %}
+{% for host in groups['lb'] %}
         - ssh -l cloud-user -t {{ hostvars[host]['ansible_ssh_host'] }} dstat -tarfsm -C total -N total 60
 {% endfor %}
 {% endif %}
