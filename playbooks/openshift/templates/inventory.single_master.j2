@@ -15,6 +15,8 @@ openshift_image_tag={{ oso_image_tag }}
 
 # move the internal DNS away from port 53, where we have dnsmasq for cluster DNS
 openshift_master_dns_port=8053
+openshift_dns_ip={{ hostvars[groups['master'][0]]['ansible_ssh_host'] }}
+openshift_use_dnsmasq=false
 
 # project network isolation by default
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
@@ -31,9 +33,6 @@ openshift_docker_hosted_registry_insecure=False
 openshift_master_cluster_hostname={{ groups['master'][0] }}
 openshift_master_cluster_public_hostname={{ openshift_public_hostname }}
 
-# use openshift's own dnsmasq
-openshift_use_dnsmasq=false
-
 # set authentication to htpasswd and provide a htpasswd file
 openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 
@@ -42,7 +41,7 @@ openshift_master_htpasswd_file={{ openshift_master_htpasswd_file }}
 {% endif %}
 
 # as a guess, set the default subdomain to openshift_public_hostname
-osm_default_subdomain={{ openshift_public_hostname }}
+openshift_master_default_subdomain={{ openshift_public_hostname }}
 
 # default project node selector
 osm_default_node_selector='region=user-node'
@@ -59,9 +58,12 @@ openshift_master_overwrite_named_certificates=true
 openshift_hosted_router_certificate={'certfile': '{{ certificate_crt }}', 'keyfile': '{{ certificate_key }}', 'cafile': '{{ certificate_ca }}' }
 {% endif %}
 
-openshift_hosted_metrics_deploy=true
-openshift_master_default_subdomain={{ openshift_public_hostname }}
+# deploy metrics service
+openshift_hosted_metrics_deploy={{ oso_deploy_metrics|default(false)|bool }}
 openshift_hosted_metrics_resolution=20s
+
+# deploy aggregated logging service
+openshift_hosted_logging_deploy={{ oso_deploy_logging|default(false)|bool }}
 
 # reduce master memory usage
 osm_api_server_args={'deserialization-cache-size': ['1000']}
