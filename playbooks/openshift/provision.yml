@@ -178,13 +178,13 @@
       include: tasks/vm_group_provision.yml
       vars:
         security_groups: "{{ master_secgroups }}"
-        server_group: master
+        server_group_suffix: "master"
       with_items:
         - "master"
       loop_control:
         loop_var: "vm_group_name"
 
-    - name: assing public ip to first master (no separate load balancers)
+    - name: assign public ip to first master (no separate load balancers)
       os_floating_ip:
         server: "{{ cluster_name }}-master-1"
         floating_ip_address: "{{ openshift_public_ip }}"
@@ -194,7 +194,7 @@
       include: tasks/vm_group_provision.yml
       vars:
         security_groups: ["{{ cluster_name }}-infra", "{{ cluster_name }}-common"]
-        server_group: etcd
+        server_group_suffix: "etcd"
       with_items:
         - "etcd"
       loop_control:
@@ -205,7 +205,7 @@
       include: tasks/vm_group_provision.yml
       vars:
         security_groups: ["{{ cluster_name }}-lb", "{{ cluster_name }}-infra", "{{ cluster_name }}-common"]
-        server_group: lb
+        server_group_suffix: "lb"
       with_items:
         - "lb"
       loop_control:
@@ -243,7 +243,7 @@
       vars:
         security_groups: ["{{ cluster_name }}-node", "{{ cluster_name }}-common"]
         inventory_group: "nodes"
-        server_group: "nodes"
+        server_group_suffix: "node"
       with_items: "{{ node_groups }}"
       loop_control:
         loop_var: "vm_group_name"
