@@ -2,6 +2,7 @@
 
 [OSEv3:vars]
 ansible_ssh_user=cloud-user
+ansible_become=true
 
 # set openstack-ansible install type and version
 containerized={{ oso_install_containerized | default(false) }}
