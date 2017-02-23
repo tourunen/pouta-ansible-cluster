@@ -39,6 +39,7 @@ master:
 # that are listed here are actually used.
 node_groups:
   - std
+  - build
 
 std:
   flavor: standard.large
@@ -46,6 +47,26 @@ std:
   volumes:
     - name: data
       size: 300
+      pv_path: "/dev/vdb"
+
+  filesystems:
+    - name: swap
+      volume: data
+      size: "2%VG"
+      fstype: swap
+
+    - name: os_local
+      volume: data
+      size: "50%VG"
+      fstype: xfs
+      mount_path: /var/lib/origin/openshift.local.volumes
+
+build:
+  flavor: io.340GB
+  num_vms: 1
+  volumes:
+    - name: data
+      size: 0
       pv_path: "/dev/vdb"
 
   filesystems:
@@ -75,6 +96,7 @@ oso_deploy_logging: false
 
 openshift_public_hostname: "your.master.hostname.here"
 openshift_public_ip: "your.master.ip.here"
+openshift_builddefaults_nodeselectors: "{'type':'build'}"
 
 project_external_ips: ["your.master.ip.here"]
 

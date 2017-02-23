@@ -73,6 +73,11 @@ openshift_hosted_logging_deploy={{ oso_deploy_logging|default(false)|bool }}
 # reduce master memory usage
 osm_api_server_args={'deserialization-cache-size': ['1000']}
 
+{% if openshift_builddefaults_nodeselectors is defined %}
+# run builds on dedicated nodes
+openshift_builddefaults_nodeselectors={{ openshift_builddefaults_nodeselectors }}
+{% endif %}
+
 [OSEv3:children]
 masters
 nodes
