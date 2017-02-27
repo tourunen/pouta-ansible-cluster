@@ -79,6 +79,10 @@ osm_api_server_args={'deserialization-cache-size': ['1000']}
 openshift_builddefaults_nodeselectors={{ openshift_builddefaults_nodeselectors }}
 {% endif %}
 
+#
+# Host definitions
+#
+
 [OSEv3:children]
 masters
 nodes
@@ -88,6 +92,11 @@ lb
 [masters:vars]
 vm_group_name=master
 pv_vg_data=vg_data
+
+# custom group vars from cluster_conf.yaml
+{% for group_var in master.group_vars|default([]) %}
+{{ group_var }}
+{% endfor %}
 
 [masters]
 {% for vm in groups['master'] %}
@@ -106,16 +115,27 @@ node_lbs
 
 [node_masters:vars]
 openshift_schedulable=true
+openshift_node_labels="{'region': 'infra'}"
+
+# custom group vars from cluster_conf.yaml
+{% for group_var in master.group_vars|default([]) %}
+{{ group_var }}
+{% endfor %}
 
 [node_masters]
 {% for vm in groups['master'] %}
-{{ vm }} openshift_hostname={{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }} openshift_node_labels="{'region': 'infra'}"
+{{ vm }} openshift_hostname={{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
 {% endfor %}
 
 [node_lbs:vars]
 vm_group_name=lb
 openshift_node_labels="{'region': 'network'}"
 pv_vg_data=vg_data
+
+{% for group_var in lb.group_vars|default([]) %}
+# custom group var from cluster_conf.yaml
+{{ group_var }}
+{% endfor %}
 
 [node_lbs]
 {% if (lb is defined and lb.num_vms|default(0)) > 0 %}
@@ -130,6 +150,11 @@ openshift_node_labels="{'region': 'user-node', 'type': '{{ group_name }}'}"
 pv_vg_data=vg_data
 vm_group_name={{ group_name }}
 
+{% for group_var in vars[group_name].group_vars|default([]) %}
+# custom group var from cluster_conf.yaml
+{{ group_var }}
+{% endfor %}
+
 [{{ group_name }}]
 {% for vm in groups[group_name] %}
 {{ vm }} openshift_hostname={{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
@@ -140,14 +165,39 @@ vm_group_name={{ group_name }}
 vm_group_name=nfs
 pv_vg_pvol=vg_pvol
 
+{% if nfs is defined %}
+{% for group_var in nfs.group_vars|default([]) %}
+# custom group var from cluster_conf.yaml
+{{ group_var }}
+{% endfor %}
+{% endif %}
+
 [nfsservers]
+{% if nfs is defined and nfs.num_vms|default(0) > 0 %}
 {{ groups['nfs'][0] }} openshift_hostname={{ vm }} ansible_ssh_host={{ hostvars[groups['nfs'][0]]['ansible_ssh_host'] }}
+{% endif %}
+
+[etcd:vars]
+{% if etcd is defined %}
+{% for group_var in etcd.group_vars|default([]) %}
+# custom group var from cluster_conf.yaml
+{{ group_var }}
+{% endfor %}
+{% endif %}
 
 [etcd]
 {% if etcd is defined and etcd.num_vms|default(0) > 0 %}{% set etcd_group='etcd' %}{% else %}{% set etcd_group='master' %}{% endif %}
 {% for vm in groups[etcd_group] %}
 {{ vm }} openshift_hostname={{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
 {% endfor %}
+
+[lb:vars]
+{% if lb is defined %}
+{% for group_var in lb.group_vars|default([]) %}
+# custom group var from cluster_conf.yaml
+{{ group_var }}
+{% endfor %}
+{% endif %}
 
 [lb]
 {% if lb is defined and lb.num_vms|default(0) > 0 %}

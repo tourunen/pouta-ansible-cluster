@@ -82,6 +82,11 @@ nodes
 vm_group_name=master
 pv_vg_data=vg_data
 
+{% for group_var in master.group_vars|default([]) %}
+# custom group var from cluster_conf.yaml
+{{ group_var }}
+{% endfor %}
+
 [masters]
 {% for vm in groups['master'] %}
 {{ vm }} openshift_hostname={{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
@@ -98,10 +103,16 @@ node_masters
 
 [node_masters:vars]
 openshift_schedulable=true
+openshift_node_labels="{'region': 'infra'}"
+
+{% for group_var in master.group_vars|default([]) %}
+# custom group var from cluster_conf.yaml
+{{ group_var }}
+{% endfor %}
 
 [node_masters]
 {% for vm in groups['master'] %}
-{{ vm }} openshift_hostname={{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }} openshift_node_labels="{'region': 'infra'}"
+{{ vm }} openshift_hostname={{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
 {% endfor %}
 
 {% for group_name in vars['node_groups'] %}
@@ -109,6 +120,11 @@ openshift_schedulable=true
 openshift_node_labels="{'region': 'user-node', 'type': '{{ group_name }}'}"
 pv_vg_data=vg_data
 vm_group_name={{ group_name }}
+
+{% for group_var in vars[group_name].group_vars|default([]) %}
+# custom group var from cluster_conf.yaml
+{{ group_var }}
+{% endfor %}
 
 [{{ group_name }}]
 {% for vm in groups[group_name] %}
@@ -119,6 +135,13 @@ vm_group_name={{ group_name }}
 [nfsservers:vars]
 vm_group_name=nfs
 pv_vg_pvol=vg_pvol
+
+{% if nfs is defined %}
+{% for group_var in nfs.group_vars|default([]) %}
+# custom group var from cluster_conf.yaml
+{{ group_var }}
+{% endfor %}
+{% endif %}
 
 [nfsservers]
 {% if nfs is defined %}
