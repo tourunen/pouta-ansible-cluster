@@ -30,6 +30,8 @@ os_firewall_use_firewalld=False
 openshift_docker_hosted_registry_insecure=False
 {% endif %}
 
+openshift_hosted_registry_selector='type=master'
+
 # clustered installation
 openshift_master_cluster_method=native
 {% if (lb.num_vms|default(0)) > 0 %}
@@ -50,11 +52,11 @@ openshift_master_htpasswd_file={{ openshift_master_htpasswd_file }}
 openshift_master_default_subdomain={{ openshift_public_hostname }}
 
 # default project node selector
-osm_default_node_selector='region=user-node'
+osm_default_node_selector='default_run=allow'
 osm_project_request_template='default/project-request-default'
 
 # deploy the router on a node with external IP
-openshift_hosted_router_selector='region=network'
+openshift_hosted_router_selector='type=lb'
 
 # if the wildcard cert is defined, set it for api and router
 # note the difference with singular and plural
@@ -74,10 +76,11 @@ openshift_hosted_logging_deploy={{ oso_deploy_logging|default(false)|bool }}
 # reduce master memory usage
 osm_api_server_args={'deserialization-cache-size': ['1000']}
 
-{% if openshift_builddefaults_nodeselectors is defined %}
+{% if openshift_buildoverrides_nodeselectors is defined %}
 # run builds on dedicated nodes
-openshift_builddefaults_nodeselectors={{ openshift_builddefaults_nodeselectors }}
+openshift_buildoverrides_nodeselectors={{ openshift_buildoverrides_nodeselectors }}
 {% endif %}
+openshift_buildoverrides_force_pull=True
 
 #
 # Host definitions
@@ -93,9 +96,9 @@ lb
 vm_group_name=master
 pv_vg_data=vg_data
 
-# custom group vars from cluster_conf.yaml
-{% for group_var in master.group_vars|default([]) %}
-{{ group_var }}
+{% for group_var_key, group_var_value in (master.group_vars|default({})).iteritems() %}
+# custom group var from cluster_conf.yaml
+{{ group_var_key }}={{ group_var_value }}
 {% endfor %}
 
 [masters]
@@ -115,11 +118,13 @@ node_lbs
 
 [node_masters:vars]
 openshift_schedulable=true
-openshift_node_labels="{'region': 'infra'}"
 
-# custom group vars from cluster_conf.yaml
-{% for group_var in master.group_vars|default([]) %}
-{{ group_var }}
+{% set labels={'type': 'master'}|combine(master.node_labels|default({})) %}
+openshift_node_labels={{ labels }}
+
+{% for group_var_key, group_var_value in (master.group_vars|default({})).iteritems() %}
+# custom group var from cluster_conf.yaml
+{{ group_var_key }}={{ group_var_value }}
 {% endfor %}
 
 [node_masters]
@@ -129,12 +134,13 @@ openshift_node_labels="{'region': 'infra'}"
 
 [node_lbs:vars]
 vm_group_name=lb
-openshift_node_labels="{'region': 'network'}"
+{% set labels={'type': 'lb'}|combine(lb.node_labels|default({})) %}
+openshift_node_labels={{ labels }}
 pv_vg_data=vg_data
 
-{% for group_var in lb.group_vars|default([]) %}
+{% for group_var_key, group_var_value in (lb.group_vars|default({})).iteritems() %}
 # custom group var from cluster_conf.yaml
-{{ group_var }}
+{{ group_var_key }}={{ group_var_value }}
 {% endfor %}
 
 [node_lbs]
@@ -146,19 +152,21 @@ pv_vg_data=vg_data
 
 {% for group_name in vars['node_groups'] %}
 [{{ group_name }}:vars]
-openshift_node_labels="{'region': 'user-node', 'type': '{{ group_name }}'}"
-pv_vg_data=vg_data
 vm_group_name={{ group_name }}
+pv_vg_data=vg_data
+{% set labels={'type': group_name, 'default_run': 'allow'}|combine(vars[group_name].node_labels|default({})) %}
+openshift_node_labels={{ labels }}
 
-{% for group_var in vars[group_name].group_vars|default([]) %}
+{% for group_var_key, group_var_value in (vars[group_name].group_vars|default({})).iteritems() %}
 # custom group var from cluster_conf.yaml
-{{ group_var }}
+{{ group_var_key }}={{ group_var_value }}
 {% endfor %}
 
 [{{ group_name }}]
 {% for vm in groups[group_name] %}
 {{ vm }} openshift_hostname={{ vm }} ansible_ssh_host={{ hostvars[vm]['ansible_ssh_host'] }}
 {% endfor %}
+
 {% endfor %}
 
 [nfsservers:vars]
@@ -166,9 +174,9 @@ vm_group_name=nfs
 pv_vg_pvol=vg_pvol
 
 {% if nfs is defined %}
-{% for group_var in nfs.group_vars|default([]) %}
+{% for group_var_key, group_var_value in (lb.group_vars|default({})).iteritems() %}
 # custom group var from cluster_conf.yaml
-{{ group_var }}
+{{ group_var_key }}={{ group_var_value }}
 {% endfor %}
 {% endif %}
 
@@ -179,9 +187,9 @@ pv_vg_pvol=vg_pvol
 
 [etcd:vars]
 {% if etcd is defined %}
-{% for group_var in etcd.group_vars|default([]) %}
+{% for group_var_key, group_var_value in (etcd.group_vars|default({})).iteritems() %}
 # custom group var from cluster_conf.yaml
-{{ group_var }}
+{{ group_var_key }}={{ group_var_value }}
 {% endfor %}
 {% endif %}
 
@@ -193,9 +201,9 @@ pv_vg_pvol=vg_pvol
 
 [lb:vars]
 {% if lb is defined %}
-{% for group_var in lb.group_vars|default([]) %}
+{% for group_var_key, group_var_value in (lb.group_vars|default({})).iteritems() %}
 # custom group var from cluster_conf.yaml
-{{ group_var }}
+{{ group_var_key }}={{ group_var_value }}
 {% endfor %}
 {% endif %}
 
