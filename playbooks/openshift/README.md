@@ -140,6 +140,19 @@ Add a user
 - start testing and learning
 - get a proper certificate for master
 
+## Deprovisioning
+
+To deprovision all the resources, run
+
+    $ ansible-playbook -v -e @cluster_vars.yaml \
+    -e remove_nodes=1 -e remove_node_volumes=1 \
+    -e remove_masters=1 -e remove_master_volumes=1 \
+    -e remove_etcd=1 \
+    -e remove_lbs=1 -e remove_lb_volumes=1 \
+    -e remove_nfs=1 -e remove_nfs_volumes=1 \
+    -e remove_security_groups=1 \
+    ~/git/pouta-ansible-cluster/playbooks/openshift/deprovision.yml
+
 ## Security groups
 
 - common
