@@ -83,6 +83,7 @@ Change at least the following config entries:
     ssh_key: "bastion-key"
     openshift_public_hostname: "your.master.hostname.here"
     openshift_public_ip: "your.master.ip.here"
+    project_external_ips: ["your.master.ip.here"]
     
 If you are deploying the cluster to a non-default network, remember to add and configure an interface to bastion host in
 that network. The network also needs to be attached to a router.
