@@ -201,9 +201,15 @@ The roles of the files are:
 
 Once you have all of this configured, running the actual installation is simple.
 
-Source your openstack credentials first:
+Extract site specific data under /dev/shm/<cluster-name> by running 
 
-    $ source ~/openrc.bash
+    $ SKIP_DYNAMIC_INVENTORY=1 ansible-playbook initialize_ramdisk.yml \
+    -i <path-to-environment-dir> \
+    --ask-vault-pass
+
+Source the extracted OpenStack credentials:
+
+    $ source /dev/shm/<cluster-name>/openrc.sh
 
 Then run heat_site.yml to provision infrastructure on OpenStack and install
 OpenShift on this infrastructure:
