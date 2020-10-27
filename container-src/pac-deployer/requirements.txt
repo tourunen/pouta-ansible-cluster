@@ -5,7 +5,7 @@ Babel==2.3.4
 cffi==1.9.1
 cliff==2.3.0
 cmd2==0.6.9
-cryptography==1.8.1
+cryptography==3.2
 debtcollector==1.10.0
 decorator==4.0.10
 dnspython==1.15.0
